@@ -1,38 +1,11 @@
-// Select elements
 const cells = document.querySelectorAll('[data-cell]');
 const resetButton = document.getElementById('reset-button');
 const gameContainer = document.getElementById('game-container');
-const gameModeContainer = document.getElementById('game-mode');
-const playerVsPlayerButton = document.getElementById('player-vs-player');
-const playerVsComputerButton = document.getElementById('player-vs-computer');
 let isXTurn = true;
 let board = ['', '', '', '', '', '', '', '', ''];
-let playerX, playerO, score;
-let playingAgainstComputer = false;
-
-playerVsPlayerButton.addEventListener('click', () => {
-    playerX = prompt("Enter Player X's name:", "") || "Player X";
-    playerO = prompt("Enter Player O's name:", "") || "Player O";
-    score = { [playerX]: 0, [playerO]: 0 };
-    playingAgainstComputer = false;
-    startGame();
-});
-
-playerVsComputerButton.addEventListener('click', () => {
-    playerX = prompt("Enter Player's name:", "") || "Player";
-    playerO = "Computer";
-    score = { [playerX]: 0, [playerO]: 0 };
-    playingAgainstComputer = true;
-    startGame();
-});
-
-function startGame() {
-    gameModeContainer.style.display = 'none';
-    gameContainer.style.display = 'grid';
-    resetButton.style.display = 'block';
-    updateScoreDisplay();
-    resetBoard();
-}
+let playerX = "Player X";
+let playerO = "Player O";
+let score = { [playerX]: 0, [playerO]: 0 };
 
 const resultDisplay = document.getElementById('result-display');
 const scoreDisplay = document.getElementById('score-display');
@@ -55,7 +28,7 @@ function handleClick(e) {
     const currentPlayer = isXTurn ? playerX : playerO;
     const cellIndex = Array.from(cells).indexOf(cell);
 
-    if (board[cellIndex] !== '') return;
+    if (board[cellIndex] !== '') return; // Prevent overwriting moves
 
     board[cellIndex] = currentClass;
     cell.textContent = currentClass;
@@ -73,48 +46,21 @@ function handleClick(e) {
         displayResult("It's a draw!");
         disableBoard();
     } else {
-        isXTurn = !isXTurn;
-        if (playingAgainstComputer && !isXTurn) {
-            setTimeout(computerMove, 500);
-        }
-    }
-}
-
-function computerMove() {
-    const emptyCells = board.map((value, index) => value === '' ? index : null).filter(index => index !== null);
-    if (emptyCells.length === 0) return;
-
-    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    const cell = cells[randomIndex];
-
-    board[randomIndex] = 'O';
-    cell.textContent = 'O';
-    cell.classList.add('o-move');
-
-    if (checkWin('O')) {
-        highlightWinningCombination('O');
-        displayResult(`Computer (O) wins!`);
-        score['Computer'] += 1;
-        updateScoreDisplay();
-        disableBoard();
-    } else if (board.every(cell => cell !== '')) {
-        displayResult("It's a draw!");
-        disableBoard();
-    } else {
-        isXTurn = true;
+        isXTurn = !isXTurn; // Switch turns
     }
 }
 
 function checkWin(currentClass) {
-    return winningCombinations.some(combination => {
-        return combination.every(index => board[index] === currentClass);
+    return winningCombinations.find(combination => {
+        if (combination.every(index => board[index] === currentClass)) {
+            return combination;
+        }
+        return false;
     });
 }
 
 function highlightWinningCombination(currentClass) {
-    const winningCombination = winningCombinations.find(combination => {
-        return combination.every(index => board[index] === currentClass);
-    });
+    const winningCombination = checkWin(currentClass);
     if (winningCombination) {
         winningCombination.forEach(index => {
             cells[index].classList.add('winning-cell');
